@@ -75,7 +75,7 @@ if __name__ == "__main__":
     else:
         video_list = list(glob.glob('{}/*/comp.avi'.format(opts.resume)))
 
-    print("===> Begin processing ")
+    print("===> Begin processing {} videos".format(len(video_list)))
     for vt, video in enumerate(video_list):
         video_name = video.split('/')[-2]
         fw_flow_dir = os.path.join(opts.data_dir, opts.dataset, opts.name, "fw_flow", video_name)
@@ -148,6 +148,8 @@ if __name__ == "__main__":
             if not os.path.exists(output_filename):
                 flow_rgb = utils.flow_to_rgb(fw_flow)
                 utils.save_img(flow_rgb, output_filename)
+
+    print("===> Finished processing !")           
 
 
 
