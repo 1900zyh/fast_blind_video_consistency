@@ -63,6 +63,7 @@ if __name__ == "__main__":
     print("===> Load %s" %model_filename)
     checkpoint = torch.load(model_filename)
     model.load_state_dict(checkpoint['state_dict'])
+    print("===> Finished Loading model!")
 
     device = torch.device("cuda")
     model = model.to(device)
@@ -74,8 +75,8 @@ if __name__ == "__main__":
     else:
         video_list = list(glob.glob('{}/*/comp.avi'.format(opts.resume)))
 
-   
-    for video in video_list:
+    print("===> Begin processing ")
+    for vt, video in enumerate(video_list):
         video_name = video.split('/')[-2]
         fw_flow_dir = os.path.join(opts.data_dir, opts.dataset, opts.name, "fw_flow", video_name)
         if not os.path.isdir(fw_flow_dir):
@@ -93,7 +94,8 @@ if __name__ == "__main__":
 
         for t in range(len(frame_list) - 1):
             
-            print("Compute flow on %s frame %d" %(opts.dataset, t))
+            print("Compute flow for {}, {}/{} on frame {}/{}".format(video_name,
+                vt, len(video_list), t, len(frame_list)))
 
             ### load input images 
             img1 = frame_list[t]
