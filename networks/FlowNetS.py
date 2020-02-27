@@ -9,7 +9,7 @@ from torch.nn import init
 import math
 import numpy as np
 
-from submodules import *
+from networks.submodules import *
 'Parameter count : 38,676,504 '
 
 class FlowNetS(nn.Module):
