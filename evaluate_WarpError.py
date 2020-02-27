@@ -22,6 +22,8 @@ def read_frame_from_videos(vname):
   success, image = vidcap.read()
   count = 0
   while success:
+    image = image[:, :, ::-1] ## BGR to RGB
+    image = np.float32(image) / 255.0
     frames.append(image)
     success,image = vidcap.read()
     count += 1
