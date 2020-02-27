@@ -71,8 +71,6 @@ if __name__ == "__main__":
             ### load input images
             img1 = frame_list[t-1]
             img2 = frame_list[t]
-            print("Evaluate error for {}, {}/{} on frame {}/{}".format(video_name,
-                v, len(video_list), t, len(frame_list)))
 
             ### load flow
             filename = os.path.join(flow_dir, "%05d.flo" %(t-1))
@@ -98,6 +96,8 @@ if __name__ == "__main__":
             if N == 0:
                 N = diff.shape[0] * diff.shape[1] * diff.shape[2]
             err += np.sum(np.square(diff)) / N
+            print("Evaluate error for {}, {}/{} on frame {}/{}".format(video_name,
+                v, len(video_list), t, len(frame_list)), N, np.sum(np.square(diff))/N)
         err_all[v] = err / (len(frame_list) - 1)
         print(err / (len(frame_list) - 1))
     print("\nAverage Warping Error = %f\n" %(err_all.mean()))
