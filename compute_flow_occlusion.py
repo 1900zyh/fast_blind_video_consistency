@@ -18,6 +18,17 @@ import networks
 import utils
 
 
+def read_frame_from_videos(vname):
+  frames = []
+  vidcap = cv2.VideoCapture(vname)
+  success, image = vidcap.read()
+  count = 0
+  while success:
+    frames.append(image)
+    success,image = vidcap.read()
+    count += 1
+  return frames
+
 
 if __name__ == "__main__":
 
@@ -25,19 +36,16 @@ if __name__ == "__main__":
 
     ### testing options
     parser.add_argument('-model',           type=str,     default="FlowNet2",   help='Flow model name')
+    parser.add_argument('-data_dir',        type=str,     default='data',       help='path to data folder')
 
     parser.add_argument('-dataset',         type=str,     required=True,        help='testing datasets')
-    parser.add_argument('-phase',           type=str,     default="test",       choices=["train", "test"])
-    parser.add_argument('-data_dir',        type=str,     default='data',       help='path to data folder')
-    parser.add_argument('-list_dir',        type=str,     default='lists',      help='path to list folder')
-    parser.add_argument('-gpu',             type=int,     default=0,            help='gpu device id')
-    parser.add_argument('-cpu',             action='store_true',                help='use cpu?')
+    parser.add_argument('-r', '--resume', default=None, type=str, required=True)
+    parser.add_argument('-n', '--name', default=None, type=str, required=True)
 
 
     opts = parser.parse_args()
 
     ### update options
-    opts.cuda = (opts.cpu != True)
     opts.grads = {} # dict to collect activation gradients (for training debug purpose)
 
     ### FlowNet options
@@ -46,9 +54,6 @@ if __name__ == "__main__":
 
     print(opts)
 
-    if opts.cuda and not torch.cuda.is_available():
-        raise Exception("No GPU found, please run without -cuda")
-    
     ### initialize FlowNet
     print('===> Initializing model from %s...' %opts.model)
     model = networks.__dict__[opts.model](opts)
@@ -59,40 +64,40 @@ if __name__ == "__main__":
     checkpoint = torch.load(model_filename)
     model.load_state_dict(checkpoint['state_dict'])
 
-    device = torch.device("cuda" if opts.cuda else "cpu")
+    device = torch.device("cuda")
     model = model.to(device)
     model.eval()
 
     ### load image list
-    list_filename = os.path.join(opts.list_dir, "%s_%s.txt" %(opts.dataset, opts.phase))
-    with open(list_filename) as f:
-        video_list = [line.rstrip() for line in f.readlines()]
+    if opts.name == 'orig':
+        video_list = list(glob.glob('{}/*/orig.avi'.format(opts.resume)))
+    else:
+        video_list = list(glob.glob('{}/*/comp.avi'.format(opts.resume)))
 
    
     for video in video_list:
-
-        frame_dir = os.path.join(opts.data_dir, opts.phase, "input", opts.dataset, video)
-        fw_flow_dir = os.path.join(opts.data_dir, opts.phase, "fw_flow", opts.dataset, video)
+        video_name = video.split('/')[-2]
+        fw_flow_dir = os.path.join(opts.data_dir, opts.dataset, opts.name, "fw_flow", video_name)
         if not os.path.isdir(fw_flow_dir):
             os.makedirs(fw_flow_dir)
 
-        fw_occ_dir = os.path.join(opts.data_dir, opts.phase, "fw_occlusion", opts.dataset, video)
+        fw_occ_dir = os.path.join(opts.data_dir, opts.dataset, opts.name, "fw_occlusion", video_name)
         if not os.path.isdir(fw_occ_dir):
             os.makedirs(fw_occ_dir)
 
-        fw_rgb_dir = os.path.join(opts.data_dir, opts.phase, "fw_flow_rgb", opts.dataset, video)
+        fw_rgb_dir = os.path.join(opts.data_dir, opts.dataset, opts.name, "fw_flow_rgb", video_name)
         if not os.path.isdir(fw_rgb_dir):
             os.makedirs(fw_rgb_dir)
 
-        frame_list = glob.glob(os.path.join(frame_dir, "*.jpg"))
+        frame_list = read_frame_from_videos(video)
 
         for t in range(len(frame_list) - 1):
             
-            print("Compute flow on %s-%s frame %d" %(opts.dataset, opts.phase, t))
+            print("Compute flow on %s frame %d" %(opts.dataset, t))
 
             ### load input images 
-            img1 = utils.read_img(os.path.join(frame_dir, "%05d.jpg" %(t)))
-            img2 = utils.read_img(os.path.join(frame_dir, "%05d.jpg" %(t + 1)))
+            img1 = frame_list[t]
+            img2 = frame_list[t+1]
             
             ### resize image
             size_multiplier = 64
@@ -106,7 +111,6 @@ if __name__ == "__main__":
             img2 = cv2.resize(img2, (W_sc, H_sc))
         
             with torch.no_grad():
-
                 ### convert to tensor
                 img1 = utils.img2tensor(img1).to(device)
                 img2 = utils.img2tensor(img2).to(device)
