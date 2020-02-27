@@ -65,15 +65,15 @@ if __name__ == "__main__":
     model.load_state_dict(checkpoint['state_dict'])
     print("===> Finished Loading model!")
 
-    device = torch.device("cuda")
-    model = model.to(device)
+    model = model.cuda()
     model.eval()
 
     ### load image list
+    print("===> Begin reading videos")
     if opts.name == 'orig':
-        video_list = list(glob.glob('{}/*/orig.avi'.format(opts.resume)))
+        video_list = list(glob.glob(os.path.join(opts.resume, '*/orig.avi')))  
     else:
-        video_list = list(glob.glob('{}/*/comp.avi'.format(opts.resume)))
+        video_list = list(glob.glob(os.path.join(opts.resume, '*/comp.avi')))
 
     print("===> Begin processing {} videos".format(len(video_list)))
     for vt, video in enumerate(video_list):
@@ -114,8 +114,8 @@ if __name__ == "__main__":
         
             with torch.no_grad():
                 ### convert to tensor
-                img1 = utils.img2tensor(img1).to(device)
-                img2 = utils.img2tensor(img2).to(device)
+                img1 = utils.img2tensor(img1).cuda()
+                img2 = utils.img2tensor(img2).cuda()
         
                 ### compute fw flow
                 fw_flow = model(img1, img2)
