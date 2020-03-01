@@ -53,6 +53,8 @@ if __name__ == "__main__":
     print("===> Begin reading videos")
     if opts.name == 'orig':
         video_list = list(glob.glob(os.path.join(opts.resume, '*/orig.avi')))  
+    elif opts.name == 'post':
+        video_list = list(glob.glob(os.path.join(opts.resume, '*/post.avi')))  
     else:
         video_list = list(glob.glob(os.path.join(opts.resume, '*/comp.avi')))
 
