@@ -70,10 +70,12 @@ if __name__ == "__main__":
     model = model.cuda()
     model.eval()
 
-    ### load image list
+    ### load video list
     print("===> Begin reading videos")
     if opts.name == 'orig':
         video_list = list(glob.glob(os.path.join(opts.resume, '*/orig.avi')))  
+    elif opts.name == 'post':
+        video_list = list(glob.glob(os.path.join(opts.resume, '*/post.avi')))  
     else:
         video_list = list(glob.glob(os.path.join(opts.resume, '*/comp.avi')))
 
