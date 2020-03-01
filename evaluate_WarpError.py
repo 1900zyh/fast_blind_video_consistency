@@ -38,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('-data_dir',        type=str,     default='data',           help='path to data folder')
 
     parser.add_argument('-dataset',         type=str,     required=True,            help='test datasets')
+    parser.add_argument('-useflow',         type=bool,     required=True,            help='use orig flow')
     parser.add_argument('-r', '--resume', default=None, type=str, required=True)
     parser.add_argument('-n', '--name', default=None, type=str, required=True)
 
@@ -65,9 +66,12 @@ if __name__ == "__main__":
 
     for v, video in enumerate(video_list):
         video_name = video.split('/')[-2]
-
-        occ_dir = os.path.join(opts.data_dir, opts.dataset, opts.name, "fw_occlusion", video_name)
-        flow_dir =  os.path.join(opts.data_dir, opts.dataset, opts.name, "fw_flow", video_name)
+        if opts.useflow:
+            occ_dir = os.path.join(opts.data_dir, opts.dataset, 'orig', "fw_occlusion", video_name)
+            flow_dir =  os.path.join(opts.data_dir, opts.dataset, 'orig', "fw_flow", video_name)
+        else:
+            occ_dir = os.path.join(opts.data_dir, opts.dataset, opts.name, "fw_occlusion", video_name)
+            flow_dir =  os.path.join(opts.data_dir, opts.dataset, opts.name, "fw_flow", video_name)
         frame_list = read_frame_from_videos(video)
 
         err = 0
